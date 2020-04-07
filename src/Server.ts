@@ -24,14 +24,20 @@ export class BasicServer {
                 if (request.method === 'GET') {
                     response.end(JSON.stringify(XSET.getMonitorStatus()));
                 } else if (request.method === 'POST') {
-                    let data:any = [];
+                    const data:any = [];
                     request.on('data', chunk => {
                         data.push(chunk);
                     })
                     request.on('end', () => {
-                        let body = JSON.parse(data);
+                        const body = JSON.parse(data);
                         if(body.monitor){
-                            response.end(JSON.stringify(XSET.setMonitorStatus(body.monitor)));
+                            const result = XSET.setMonitorStatus(body.monitor);
+                            if(result === false){
+                                response.statusCode = 400;
+                                response.end("standby, suspend, off, on")
+                            }else{
+                                response.end(JSON.stringify(result));
+                            }
                         }
                     })
                 }

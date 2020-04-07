@@ -16,7 +16,7 @@ export class XSET{
         console.log(`running command: ${this.COMMAND_QUERY}`)
         const proc = child_process.execSync(this.COMMAND_QUERY);
         const regexp = /  Monitor is (?<status>.*)/;
-        const parsed = regexp.exec(proc.toString()).groups.status;
+        const parsed = regexp.exec(proc.toString()).groups.status.toLocaleLowerCase();
 
         if(!parsed) {
             return { 'monitor': 'unknown' };
@@ -27,7 +27,13 @@ export class XSET{
     }
 
     public static setMonitorStatus(status: XSET_DPMS_POWER) {
+
+        if(!Object.values(XSET_DPMS_POWER).includes(status)) {
+            return false;
+        }
+
         const regexp = /{.}/;
+
         const cmd = this.COMMAND_DPMS.replace(regexp, status.toString())
         console.log(`running command: ${cmd}`)
         child_process.execSync(cmd);
