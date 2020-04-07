@@ -1,25 +1,28 @@
-import {
-    createServer,
-    IncomingMessage,
-    RequestListener,
-    Server,
-    ServerResponse
-} from 'http';
+import { createServer, Server } from 'https';
+
+import * as fs from 'fs';
+
+import { IncomingMessage, RequestListener, ServerResponse } from 'http';
 import { XSET } from './XSET';
 
 export class BasicServer {
-    public httpServer: Server;
+    public httpsServer: Server;
     public user: string;
     public pass: string;
 
     constructor(listenAddress: string, port: number, user: string, pass: string) {
-        this.httpServer = createServer(this.requestCallback);
-        this.httpServer.listen(port, listenAddress);
+        const opts = {
+            key: fs.readFileSync('key.pem'),
+            // tslint:disable-next-line: object-literal-sort-keys
+            cert: fs.readFileSync('cert.pem')
+        };
+        this.httpsServer = createServer(opts, this.requestCallback);
+        this.httpsServer.listen(port, listenAddress);
         this.user = user;
         this.pass = pass;
     }
 
-    public requestCallback: RequestListener = (
+    public requestCallback : RequestListener = (
         request: IncomingMessage,
         response: ServerResponse
     ) => {
@@ -31,21 +34,24 @@ export class BasicServer {
             const auth = request.headers.authorization.trim().split(" ");
             if(auth[0] === "Basic"){
                 const base64 = auth[1];
-                const buff = new Buffer(base64, 'base64');
+                const buff = Buffer.from(base64, 'base64');
                 const token = buff.toString('ascii').trim().split(":");
                 const user = token[0]
                 const pass = token[1];
                 if(user !== this.user || pass !== this.pass){
                     response.statusCode = 401;
                     response.end("Unauthorized.")
+                    return;
                 }
             }else{
                 response.statusCode = 401;
                 response.end("Unauthorized.")
+                return;
             }
         }else{
             response.statusCode = 401;
             response.end("Unauthorized.")
+            return;
         }
         
 
@@ -53,6 +59,7 @@ export class BasicServer {
             case '/dpms': {
                 if (request.method === 'GET') {
                     response.end(JSON.stringify(XSET.getMonitorStatus()));
+                    return;
                 } else if (request.method === 'POST') {
                     
                     const data:any = [];
@@ -65,9 +72,11 @@ export class BasicServer {
                             const result = XSET.setMonitorStatus(body.monitor);
                             if(result === false){
                                 response.statusCode = 400;
-                                response.end("standby, suspend, off, on")
+                                response.end("Accepted values: standby, suspend, off, on")
+                                return;
                             }else{
                                 response.end(JSON.stringify(result));
+                                return;
                             }
                         }
                     })
@@ -77,6 +86,7 @@ export class BasicServer {
             default: {
                 response.statusCode = 404;
                 response.end();
+                return;
             }
         }
     };
