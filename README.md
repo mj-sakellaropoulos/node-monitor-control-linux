@@ -4,7 +4,7 @@ Node server to control your screens (linux). Can be used in conjunction with the
 
 ## Installation
 ##### Requirements
- - pm2 : run the script as a deamon
+ - pm2 : run the script as a daemon
  - The program must run as the current user logged into the current X Session
 ```sh
 sudo npm i -g pm2
