@@ -50,3 +50,6 @@ node ./build/main/index.js
 ```
 node index.js port username password
 ```
+
+## Repo Template
+[bitjson/typescript-starter](https://github.com/bitjson/typescript-starter)
